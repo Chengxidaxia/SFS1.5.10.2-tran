@@ -359,6 +359,25 @@
             transform: translateY(-3px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
+        
+        .add-color-section {
+            text-align: center;
+            margin-top: 15px;
+        }
+        
+        .add-color-button {
+            background: linear-gradient(135deg, #00c853, #00e676);
+            font-size: 1rem;
+            padding: 12px 20px;
+            max-width: 250px;
+            margin: 0 auto;
+        }
+        
+        .add-color-button:hover {
+            background: linear-gradient(135deg, #00b34a, #00d46a);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -426,6 +445,13 @@ no_color_message=普通文本（无颜色标签）"></textarea>
                 当前文本没有color标签，游戏内将显示默认白色
             </div>
             
+            <!-- 添加颜色标签按钮 -->
+            <div class="add-color-section hidden" id="addColorSection">
+                <button id="addColorButton" class="add-color-button">
+                    <span class="icon">🎨</span> 添加颜色标签
+                </button>
+            </div>
+            
             <div class="tag-info" id="tagInfo">
                 当前编辑: 条目 1
             </div>
@@ -457,6 +483,7 @@ no_color_message=普通文本（无颜色标签）"></textarea>
                 <li>当条目有多个color标签时，可以使用片段选择器选择要编辑的片段</li>
                 <li>在"编辑内容"区域修改文本内容</li>
                 <li>使用颜色选择器更改文本颜色</li>
+                <li>对于没有color标签的文本，可以使用"添加颜色标签"按钮为其添加颜色</li>
                 <li>预览区域将实时显示修改后的效果和XUnity格式代码</li>
             </ul>
             <div class="plugin-info">
@@ -483,6 +510,8 @@ no_color_message=普通文本（无颜色标签）"></textarea>
             const colorPicker = document.getElementById('colorPicker');
             const colorValue = document.getElementById('colorValue');
             const noColorSection = document.getElementById('noColorSection');
+            const addColorSection = document.getElementById('addColorSection');
+            const addColorButton = document.getElementById('addColorButton');
             const styledPreview = document.getElementById('styledPreview');
             const codePreview = document.getElementById('codePreview');
             const downloadButton = document.getElementById('downloadButton');
@@ -598,6 +627,36 @@ no_color_message=普通文本（无颜色标签）"></textarea>
                 window.open('https://github.com/Chengxidaxia/SFS1.5.10.2-tran/releases/download/latest/SFStran1.5.10.2.exe', '_blank');
             });
             
+            // 添加颜色标签按钮点击事件
+            addColorButton.addEventListener('click', function() {
+                const currentEntry = parsedEntries[currentEntryIndex];
+                if (!currentEntry) return;
+                
+                // 获取当前文本内容
+                const content = contentInput.value;
+                
+                // 使用当前颜色选择器的颜色
+                const color = colorPicker.value;
+                
+                // 更新条目数据结构
+                currentEntry.hasColorTag = true;
+                currentEntry.originalValue = `<color\\=${color}>${content}</color>`;
+                currentEntry.segments = [{
+                    type: 'color',
+                    color: color,
+                    content: content
+                }];
+                
+                // 更新编辑器
+                updateEditor();
+                
+                // 更新预览
+                updatePreview();
+                
+                // 显示成功消息
+                showMessage('已添加颜色标签！', 'success');
+            });
+            
             // 更新条目选择器
             function updateEntrySelector() {
                 entrySelect.innerHTML = '';
@@ -694,6 +753,7 @@ no_color_message=普通文本（无颜色标签）"></textarea>
                         if (currentSegment.type === 'color') {
                             colorSection.style.display = 'block';
                             noColorSection.style.display = 'none';
+                            addColorSection.classList.add('hidden');
                             
                             // 更新颜色选择器
                             if (isValidColor(currentSegment.color)) {
@@ -703,6 +763,7 @@ no_color_message=普通文本（无颜色标签）"></textarea>
                         } else {
                             colorSection.style.display = 'none';
                             noColorSection.style.display = 'block';
+                            addColorSection.classList.remove('hidden');
                         }
                         
                         // 更新标签信息
